@@ -146,7 +146,11 @@ if [ -n "$BUILD" ]; then
   multistrap -a "$ARCH" -f "$CONF"
   if [ ! "$BUILD" = x86 ]; then
     echo "Build for arm/armv7/armv8 platform, copying qemu"
-    cp /usr/bin/qemu-arm-static "build/$BUILD/root/usr/bin/"
+    if [ ${ARCH} == "arm64" ];then
+      cp /usr/bin/qemu-aarch64-static "build/$BUILD/root/usr/bin/"
+    else
+      cp /usr/bin/qemu-arm-static "build/$BUILD/root/usr/bin/"
+    fi
   fi
   cp scripts/volumioconfig.sh "build/$BUILD/root"
 
