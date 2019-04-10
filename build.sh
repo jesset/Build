@@ -164,10 +164,20 @@ if [ -n "$BUILD" ]; then
       echo "Cloning Volumio with all its history"
       git clone https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
   else
-      git clone --depth 1 -b master --single-branch https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
+      if test -d /root/Volumio2 ;then
+        echo "# Using existing cloned repo Volumio2-UI"
+        rsync -ar /root/Volumio2/ "build/$BUILD/root/volumio/"
+      else
+        git clone --depth 1 -b master --single-branch https://github.com/volumio/Volumio2.git build/$BUILD/root/volumio
+      fi
   fi
   echo 'Cloning Volumio UI'
-  git clone --depth 1 -b dist --single-branch https://github.com/volumio/Volumio2-UI.git "build/$BUILD/root/volumio/http/www"
+  if test -d /root/Volumio2-UI ;then
+    echo "# Using existing cloned repo Volumio2-UI"
+    rsync -ar /root/Volumio2-UI/ "build/$BUILD/root/volumio/http/www/"
+  else
+    git clone --depth 1 -b dist --single-branch https://github.com/volumio/Volumio2-UI.git "build/$BUILD/root/volumio/http/www"
+  fi
   echo "Adding os-release infos"
   {
     echo "VOLUMIO_BUILD_VERSION=\"$(git rev-parse HEAD)\""
@@ -176,11 +186,16 @@ if [ -n "$BUILD" ]; then
     echo "VOLUMIO_ARCH=\"${BUILD}\""
   } >> "build/$BUILD/root/etc/os-release"
   rm -rf build/$BUILD/root/volumio/http/www/.git
+
   if [ ! "$BUILD" = x86 ]; then
     chroot "build/$BUILD/root" /bin/bash -x <<'EOF'
 su -
 ./volumioconfig.sh
 EOF
+  elif [ "$BUILD" = "armv8" ];then
+    echo "# Using qemu-static ${BUILD} to execute volumioconfig.sh"
+    echo ':qemu-aarch64:M::\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\xb7\x00:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:/usr/bin/qemu-aarch64-static:CF' > /proc/sys/fs/binfmt_misc/register
+    chroot "build/$BUILD/root" /volumioconfig.sh
   else
     echo ':arm:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x28\x00:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:/usr/bin/qemu-arm-static:' > /proc/sys/fs/binfmt_misc/register
     chroot "build/$BUILD/root" /volumioconfig.sh
@@ -291,8 +306,8 @@ case "$DEVICE" in
     sh scripts/sopine64image.sh -v "$VERSION" -p "$PATCH" -a armv7
     ;;
   rock64) echo 'Writing Rock64 Image File'
-    check_os_release "armv7" "$VERSION" "$DEVICE"
-    sh scripts/rock64image.sh -v "$VERSION" -p "$PATCH" -a armv7
+    check_os_release "armv8" "$VERSION" "$DEVICE"
+    sh scripts/rock64image.sh -v "$VERSION" -p "$PATCH" -a armv8
     ;;
   voltastream0) echo 'Writing PV Voltastream0 Image File'
     check_os_release "armv7" "$VERSION" "$DEVICE"

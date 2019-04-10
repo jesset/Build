@@ -1,5 +1,6 @@
 #!/bin/bash
-
+# set -e
+set -x
 NODE_VERSION=8.11.1
 
 # This script will be run in chroot under qemu.
@@ -219,36 +220,59 @@ if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
      rm volumio-remote-updater_1.3-armhf.deb
 
 
-  elif [ $ARCH = armv7 ]; then
+  elif [ $ARCH = armv7 ]||[ $ARCH = armv8 ]; then
      echo "Installing MPD for armv7"
      # First we manually install a newer alsa-lib to achieve Direct DSD support
 
-     echo "Installing alsa-lib 1.1.3"
-     wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv7/libasound2_1.1.3-5_armhf.deb
-     wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv7/libasound2-data_1.1.3-5_all.deb
-     wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv7/libasound2-dev_1.1.3-5_armhf.deb
-     dpkg --force-all -i libasound2-data_1.1.3-5_all.deb
-     dpkg --force-all -i libasound2_1.1.3-5_armhf.deb
-     dpkg --force-all -i libasound2-dev_1.1.3-5_armhf.deb
-     rm libasound2-data_1.1.3-5_all.deb
-     rm libasound2_1.1.3-5_armhf.deb
-     rm libasound2-dev_1.1.3-5_armhf.deb
+    if [ $ARCH = armv8 ];then
+      # (workaround) setting up apt sources early before executing "scripts/configure.sh"
+      echo 'deb http://ftp.nl.debian.org/debian/ stretch main contrib non-free' > /etc/apt/sources.list
+      echo 'deb-src http://ftp.nl.debian.org/debian/ stretch main contrib non-free' >> /etc/apt/sources.list
 
-     echo "Installing MPD 20.18"
-     wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.18-1_armv7.deb
-     dpkg -i mpd_0.20.18-1_armv7.deb
-     rm mpd_0.20.18-1_armv7.deb
+      # (workaround) enable armhf on arm64 platform
+      echo "# enabling armhf arch on arm64"
+      dpkg --add-architecture armhf
+      apt-get clean
+      apt-get update
+      apt-get -y install libc6:armhf libgcc1:armhf
 
-    echo "Installing Upmpdcli for armv7"
-    wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/libupnpp3_0.15.1-1_armhf.deb
-    wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/libupnp6_1.6.20.jfd5-1_armhf.deb
-    wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/upmpdcli_1.2.12-1_armhf.deb
-    dpkg -i libupnpp3_0.15.1-1_armhf.deb
-    dpkg -i libupnp6_1.6.20.jfd5-1_armhf.deb
-    dpkg -i upmpdcli_1.2.12-1_armhf.deb
-    rm libupnpp3_0.15.1-1_armhf.deb
-    rm libupnp6_1.6.20.jfd5-1_armhf.deb
-    rm upmpdcli_1.2.12-1_armhf.deb
+      # alsa libs already configured in multistrap stage:
+      # apt-get -y install libasound2 libasound2-dev libasound2-data libasound2-plugin-equal
+
+      # TODO: install/compile mpd & upmpdcli
+      echo "Installing MPD 20.18"
+      echo "Installing Upmpdcli for armv7"
+
+    else
+      echo "Installing alsa-lib 1.1.3"
+      wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv7/libasound2_1.1.3-5_armhf.deb
+      wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv7/libasound2-data_1.1.3-5_all.deb
+      wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv7/libasound2-dev_1.1.3-5_armhf.deb
+      dpkg --force-all -i libasound2-data_1.1.3-5_all.deb
+      dpkg --force-all -i libasound2_1.1.3-5_armhf.deb
+      dpkg --force-all -i libasound2-dev_1.1.3-5_armhf.deb
+      rm libasound2-data_1.1.3-5_all.deb
+      rm libasound2_1.1.3-5_armhf.deb
+      rm libasound2-dev_1.1.3-5_armhf.deb
+
+      echo "Installing MPD 20.18"
+      wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.18-1_armv7.deb
+      dpkg -i mpd_0.20.18-1_armv7.deb
+      rm mpd_0.20.18-1_armv7.deb
+
+      echo "Installing Upmpdcli for armv7"
+      wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/libupnpp3_0.15.1-1_armhf.deb
+      wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/libupnp6_1.6.20.jfd5-1_armhf.deb
+      wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/upmpdcli_1.2.12-1_armhf.deb
+      dpkg -i libupnpp3_0.15.1-1_armhf.deb
+      dpkg -i libupnp6_1.6.20.jfd5-1_armhf.deb
+      dpkg -i upmpdcli_1.2.12-1_armhf.deb
+      rm libupnpp3_0.15.1-1_armhf.deb
+      rm libupnp6_1.6.20.jfd5-1_armhf.deb
+      rm upmpdcli_1.2.12-1_armhf.deb
+
+    fi
+
 
     echo "Adding volumio-remote-updater for armv7"
     wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater_1.3-armv7.deb
@@ -263,7 +287,7 @@ if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
   wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-3.0.2-arm.tar.gz
   tar xf shairport-sync-3.0.2-arm.tar.gz
   rm /shairport-sync-3.0.2-arm.tar.gz
-  
+
   echo "Installing Shairport-Sync Metadata Reader"
   wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-metadata-reader-arm.tar.gz
   tar xf shairport-sync-metadata-reader-arm.tar.gz
@@ -272,7 +296,7 @@ if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
   echo "Volumio Init Updater"
   wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-init-updater-v2 -O /usr/local/sbin/volumio-init-updater
   chmod a+x /usr/local/sbin/volumio-init-updater
-  
+
   echo "Installing Snapcast for multiroom"
   wget http://repo.volumio.org/Volumio2/Binaries/arm/snapserver -P /usr/sbin/
   wget http://repo.volumio.org/Volumio2/Binaries/arm/snapclient -P  /usr/sbin/
@@ -347,7 +371,7 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
 
   echo "Installing MPD for i386"
   # First we manually install a newer alsa-lib to achieve Direct DSD support
-  
+
   echo "Installing alsa-lib 1.1.3"
   wget http://repo.volumio.org/Volumio2/Binaries/libasound2/i386/libasound2_1.1.3-5_i386.deb
   wget http://repo.volumio.org/Volumio2/Binaries/libasound2/i386/libasound2-data_1.1.3-5_all.deb
@@ -357,7 +381,7 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   dpkg --force-all -i libasound2-dev_1.1.3-5_i386.deb
   rm libasound2-data_1.1.3-5_all.deb
   rm libasound2_1.1.3-5_i386.deb
-  rm libasound2-dev_1.1.3-5_i386.deb 
+  rm libasound2-dev_1.1.3-5_i386.deb
 
   echo "Installing MPD 20.18"
   wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.18-1_i386.deb
@@ -379,12 +403,12 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-3.0.2-i386.tar.gz
   tar xf shairport-sync-3.0.2-i386.tar.gz
   rm /shairport-sync-3.0.2-i386.tar.gz
-  
+
   echo "Installing Shairport-Sync Metadata Reader"
   wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-metadata-reader-i386.tar.gz
   tar xf shairport-sync-metadata-reader-i386.tar.gz
   rm /shairport-sync-metadata-reader-i386.tar.gz
-  
+
 
   echo "Installing LINN Songcast module"
   wget http://repo.volumio.org/Packages/Upmpdcli/x86/sc2mpd_1.1.1-1_i386.deb

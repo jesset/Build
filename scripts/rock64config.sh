@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+set -x
 
 PATCH=$(cat /patch)
 
@@ -56,28 +58,28 @@ mv volumio-init-updater /usr/local/sbin
 
 #On The Fly Patch
 if [ "$PATCH" = "volumio" ]; then
-echo "No Patch To Apply"
+    echo "No Patch To Apply"
 else
-echo "Applying Patch ${PATCH}"
-PATCHPATH=/${PATCH}
-cd $PATCHPATH
-#Check the existence of patch script
-if [ -f "patch.sh" ]; then
-sh patch.sh
-else
-echo "Cannot Find Patch File, aborting"
-fi
-if [ -f "install.sh" ]; then
-sh install.sh
-fi
-cd /
-rm -rf ${PATCH}
+    echo "Applying Patch ${PATCH}"
+    PATCHPATH=/${PATCH}
+    cd $PATCHPATH
+    #Check the existence of patch script
+    if [ -f "patch.sh" ]; then
+        sh patch.sh
+    else
+        echo "Cannot Find Patch File, aborting"
+    fi
+    if [ -f "install.sh" ]; then
+        sh install.sh
+    fi
+    cd /
+    rm -rf ${PATCH}
 fi
 rm /patch
 
-echo "Changing to 'modules=dep'"
-echo "(otherwise Odroid won't boot due to uInitrd 4MB limit)"
-sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
+# echo "Changing to 'modules=dep'"
+# echo "(otherwise Odroid won't boot due to uInitrd 4MB limit)"
+# sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
 
 echo "Installing winbind here, since it freezes networking"
 apt-get update

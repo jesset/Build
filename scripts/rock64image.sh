@@ -1,7 +1,8 @@
 #!/bin/sh
-
-# Build Architecture Debian 32bit (to be changed to armv8)
-ARCH="armv7"
+set -e
+set -x
+# Build Architecture Debian 64bit
+ARCH="armv8"
 
 while getopts ":v:p:a:" opt; do
   case $opt in
@@ -23,7 +24,7 @@ IMG_FILE="Volumio${VERSION}-${BUILDDATE}-rock64.img"
 if [ "$ARCH" = arm ]; then
   DISTRO="Raspbian"
 else
-  DISTRO="Debian 32bit"
+  DISTRO="Debian 64bit"
 fi
 
 echo "Creating Image File ${IMG_FILE} with ${DISTRO} rootfs"
@@ -77,7 +78,7 @@ fi
 
 echo "Copying the bootloader"
 sudo dd if=platform-rock64/rock64/u-boot/idbloader.img of=${LOOP_DEV} seek=64 conv=notrunc
-sudo dd if=platform-rock64/rock64/u-boot/uboot.img of=${LOOP_DEV} seek=16384 conv=notrunc 
+sudo dd if=platform-rock64/rock64/u-boot/uboot.img of=${LOOP_DEV} seek=16384 conv=notrunc
 sudo dd if=platform-rock64/rock64/u-boot/trust.img of=${LOOP_DEV} seek=24576 conv=notrunc
 sync
 
@@ -208,7 +209,7 @@ echo "Removing the Kernel"
 rm -rf /mnt/squash/boot/*
 
 echo "Creating SquashFS, removing any previous one"
-rm -r Volumio.sqsh
+test -e Volumio.sqsh && rm -fv Volumio.sqsh
 mksquashfs /mnt/squash/* Volumio.sqsh
 
 echo "Squash filesystem created"
