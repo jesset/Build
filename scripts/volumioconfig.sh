@@ -240,8 +240,9 @@ if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
       # apt-get -y install libasound2 libasound2-dev libasound2-data libasound2-plugin-equal
 
       # TODO: install/compile mpd & upmpdcli
-      echo "Installing MPD 20.18"
-      echo "Installing Upmpdcli for armv7"
+      echo "Building MPD from source..."
+      echo "Building Upmpdcli from source..."
+      source /source_build_mpd_arm64.sh
 
     else
       echo "Installing alsa-lib 1.1.3"

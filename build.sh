@@ -148,6 +148,8 @@ if [ -n "$BUILD" ]; then
     echo "Build for arm/armv7/armv8 platform, copying qemu"
     if [ ${ARCH} == "arm64" ];then
       cp /usr/bin/qemu-aarch64-static "build/$BUILD/root/usr/bin/"
+      # (workaround) copy mpd/upmpdcli build script
+      cp scripts/packages/source_build_mpd_arm64.sh "build/$BUILD/root"
     else
       cp /usr/bin/qemu-arm-static "build/$BUILD/root/usr/bin/"
     fi
