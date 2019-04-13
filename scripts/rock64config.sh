@@ -77,9 +77,9 @@ else
 fi
 rm /patch
 
-# echo "Changing to 'modules=dep'"
-# echo "(otherwise Odroid won't boot due to uInitrd 4MB limit)"
-# sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
+echo "Changing to 'modules=dep'"
+echo "(otherwise Odroid won't boot due to uInitrd 4MB limit)"
+sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
 
 echo "Installing winbind here, since it freezes networking"
 apt-get update

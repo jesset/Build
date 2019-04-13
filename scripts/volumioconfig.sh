@@ -234,7 +234,7 @@ if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
       dpkg --add-architecture armhf
       apt-get clean
       apt-get update
-      apt-get -y install libc6:armhf libgcc1:armhf
+      apt-get -y install libc6:armhf libgcc1:armhf libstdc++6:armhf
 
       # alsa libs already configured in multistrap stage:
       # apt-get -y install libasound2 libasound2-dev libasound2-data libasound2-plugin-equal
