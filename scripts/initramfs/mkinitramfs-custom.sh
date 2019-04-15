@@ -368,9 +368,11 @@ DPKG_ARCH=`dpkg --print-architecture`
 
 if [ ${DPKG_ARCH} = "armhf" ]; then
 	LIB_GNUE="/lib/arm-linux-gnueabihf"
+elif [ ${DPKG_ARCH} = "arm64" ]; then
+	LIB_GNUE="/lib/aarch64-linux-gnu"
 elif [ ${DPKG_ARCH} = "i386" ]; then
 	LIB_GNUE="/lib/i386-linux-gnu"
-fi 
+fi
 
 DESTDIR=${DESTDIR_REAL}
 version=${v_version}
@@ -401,15 +403,31 @@ if [ ${DPKG_ARCH} = "i386" ]; then
 fi
 
 echo "Adding all common dependencies"
-cp "${LIB_GNUE}/libparted.so.2" "${DESTDIR}${LIB_GNUE}"
-cp "${LIB_GNUE}/libreadline.so.6" "${DESTDIR}${LIB_GNUE}"
-cp "${LIB_GNUE}/libtinfo.so.5" "${DESTDIR}${LIB_GNUE}"	
-cp "${LIB_GNUE}/libext2fs.so.2" "${DESTDIR}${LIB_GNUE}"
-cp "${LIB_GNUE}/libcom_err.so.2" "${DESTDIR}${LIB_GNUE}"
-cp "${LIB_GNUE}/libe2p.so.2" "${DESTDIR}${LIB_GNUE}"
-cp "${LIB_GNUE}/libgcc_s.so.1" "${DESTDIR}${LIB_GNUE}"
-cp "${LIB_GNUE}/libm.so.6" "${DESTDIR}${LIB_GNUE}"
+if [ ${DPKG_ARCH} = "arm64" ]; then
+	cp "${LIB_GNUE}/libparted.so.2" "${DESTDIR}${LIB_GNUE}"
+	cp "${LIB_GNUE}/libreadline.so.7" "${DESTDIR}${LIB_GNUE}"
+	cp "${LIB_GNUE}/libtinfo.so.5" "${DESTDIR}${LIB_GNUE}"
+	cp "${LIB_GNUE}/libext2fs.so.2" "${DESTDIR}${LIB_GNUE}"
+	cp "${LIB_GNUE}/libcom_err.so.2" "${DESTDIR}${LIB_GNUE}"
+	cp "${LIB_GNUE}/libe2p.so.2" "${DESTDIR}${LIB_GNUE}"
+	cp "${LIB_GNUE}/libgcc_s.so.1" "${DESTDIR}${LIB_GNUE}"
+	cp "${LIB_GNUE}/libm.so.6" "${DESTDIR}${LIB_GNUE}"
 
+	# armhf multiarch support
+	cp "/etc/ld.so.conf.d/arm-linux-gnueabihf.conf" "${DESTDIR}/etc/ld.so.conf.d/"
+	cp -av '/lib/arm-linux-gnueabihf' "${DESTDIR}/lib/arm-linux-gnueabihf"
+	cp -a  '/lib/ld-linux-armhf.so.3' "${DESTDIR}/lib/ld-linux-armhf.so.3"
+
+else
+	cp "${LIB_GNUE}/libparted.so.2" "${DESTDIR}${LIB_GNUE}"
+	cp "${LIB_GNUE}/libreadline.so.6" "${DESTDIR}${LIB_GNUE}"
+	cp "${LIB_GNUE}/libtinfo.so.5" "${DESTDIR}${LIB_GNUE}"
+	cp "${LIB_GNUE}/libext2fs.so.2" "${DESTDIR}${LIB_GNUE}"
+	cp "${LIB_GNUE}/libcom_err.so.2" "${DESTDIR}${LIB_GNUE}"
+	cp "${LIB_GNUE}/libe2p.so.2" "${DESTDIR}${LIB_GNUE}"
+	cp "${LIB_GNUE}/libgcc_s.so.1" "${DESTDIR}${LIB_GNUE}"
+	cp "${LIB_GNUE}/libm.so.6" "${DESTDIR}${LIB_GNUE}"
+fi
 
 
 echo "Adding volumio-init-updater to initramfs"

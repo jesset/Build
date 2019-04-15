@@ -109,5 +109,6 @@ popd
 rm -rf mpd-0.21.7*
 
 sudo apt-get clean
-sudo apt-get -y purge build-essential automake cmake git ninja-build python3-setuptools autoconf libtool
+# sudo apt-get -y purge build-essential automake cmake git ninja-build python3-setuptools autoconf libtool
+apt-get -y purge build-essential automake cmake git ninja-build cpp cpp-6 fakeroot python3-setuptools autoconf libtool libdaemon-dev libpopt-dev libconfig-dev  python3-dev libpython3.5-dev python3.5-dev dpkg-dev libboost-dev libgcc-6-dev libicu-dev libpython3-dev libstdc++-6-dev libsystemd-dev manpages-dev
 sudo apt-get -y autoremove

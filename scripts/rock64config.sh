@@ -77,9 +77,16 @@ else
 fi
 rm /patch
 
-echo "Changing to 'modules=dep'"
-echo "(otherwise Odroid won't boot due to uInitrd 4MB limit)"
-sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
+DPKG_ARCH=`dpkg --print-architecture`
+if [ ${DPKG_ARCH} = "arm64" ]; then
+    echo "Changing to 'modules=list'"
+    echo "(otherwise Odroid won't boot due to uInitrd 4MB limit)"
+    sed -i "s/MODULES=most/MODULES=list/g" /etc/initramfs-tools/initramfs.conf
+else
+    echo "Changing to 'modules=dep'"
+    echo "(otherwise Odroid won't boot due to uInitrd 4MB limit)"
+    sed -i "s/MODULES=most/MODULES=dep/g" /etc/initramfs-tools/initramfs.conf
+fi
 
 echo "Installing winbind here, since it freezes networking"
 apt-get update

@@ -243,6 +243,7 @@ if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
       echo "Building MPD from source..."
       echo "Building Upmpdcli from source..."
       source /source_build_mpd_arm64.sh
+      rm -f /source_build_mpd_arm64.sh
 
     else
       echo "Installing alsa-lib 1.1.3"
