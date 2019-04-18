@@ -413,10 +413,10 @@ if [ ${DPKG_ARCH} = "arm64" ]; then
 	cp "${LIB_GNUE}/libgcc_s.so.1" "${DESTDIR}${LIB_GNUE}"
 	cp "${LIB_GNUE}/libm.so.6" "${DESTDIR}${LIB_GNUE}"
 
-	# armhf multiarch support
-	cp "/etc/ld.so.conf.d/arm-linux-gnueabihf.conf" "${DESTDIR}/etc/ld.so.conf.d/"
-	cp -av '/lib/arm-linux-gnueabihf' "${DESTDIR}/lib/arm-linux-gnueabihf"
-	cp -a  '/lib/ld-linux-armhf.so.3' "${DESTDIR}/lib/ld-linux-armhf.so.3"
+	## armhf multiarch support
+	# cp "/etc/ld.so.conf.d/arm-linux-gnueabihf.conf" "${DESTDIR}/etc/ld.so.conf.d/"
+	# cp -av '/lib/arm-linux-gnueabihf' "${DESTDIR}/lib/arm-linux-gnueabihf"
+	# cp -a  '/lib/ld-linux-armhf.so.3' "${DESTDIR}/lib/ld-linux-armhf.so.3"
 
 else
 	cp "${LIB_GNUE}/libparted.so.2" "${DESTDIR}${LIB_GNUE}"
