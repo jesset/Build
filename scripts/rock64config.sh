@@ -109,3 +109,11 @@ mkimage -A arm64 -O linux -T ramdisk -C none -a 0 -e 0 -n uInitrd -d /boot/volum
 
 echo "Removing unnecessary /boot files"
 rm /boot/volumio.initrd
+
+if [ ${DPKG_ARCH} = "arm64" ]; then
+    echo "Checking /sbin/init ..."
+    if [ ! -e /sbin/init ];then
+        echo "Warn: /sbin/init not exist, symlinking systemd(Debian stretch)..."
+        ln -sfv /lib/systemd/systemd /sbin/init
+    fi
+fi
