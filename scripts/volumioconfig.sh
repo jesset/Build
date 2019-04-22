@@ -135,7 +135,128 @@ echo "nameserver 8.8.8.8" > /etc/resolv.conf
 ################
 #Volumio System#---------------------------------------------------
 ################
-if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
+
+if [ $(uname -m) = aarch64 ]; then
+  echo "Arm Environment detected"
+  echo ' Adding Raspbian Repo Key'
+  wget https://archive.raspbian.org/raspbian.public.key -O - | sudo apt-key add -
+
+  echo "Installing ARM Node Environment"
+  NODE_VERSION=8.16.0
+  wget https://nodejs.org/dist/latest-v8.x/node-v${NODE_VERSION}-linux-arm64.tar.xz
+  tar xf node-v${NODE_VERSION}-linux-arm64.tar.xz
+  rm /node-v${NODE_VERSION}-linux-arm64.tar.xz
+  cd /node-v${NODE_VERSION}-linux-arm64
+  cp -rp bin/ include/ lib/ share/ /
+  cd /
+  rm -rf /node-v${NODE_VERSION}-linux-arm64
+
+  # Symlinking to legacy paths
+  ln -s /bin/node /usr/local/bin/node
+  ln -s /bin/npm /usr/local/bin/npm
+
+  echo "Installing Volumio Modules"
+  cd /volumio
+  # TODO
+  # wget http://repo.volumio.org/Volumio2/node_modules_arm-${NODE_VERSION}.tar.gz
+  # tar xf node_modules_arm-${NODE_VERSION}.tar.gz
+  # rm node_modules_arm-${NODE_VERSION}.tar.gz
+  npm install #(workaround)
+
+  echo "Setting proper ownership"
+  chown -R volumio:volumio /volumio
+
+  echo "Creating Data Path"
+  mkdir /data
+  chown -R volumio:volumio /data
+
+  echo "Creating ImgPart Path"
+  mkdir /imgpart
+  chown -R volumio:volumio /imgpart
+
+  echo "Changing os-release permissions"
+  chown volumio:volumio /etc/os-release
+  chmod 777 /etc/os-release
+
+  echo "Installing Custom Packages"
+  cd /
+
+  ARCH=$(cat /etc/os-release | grep ^VOLUMIO_ARCH | tr -d 'VOLUMIO_ARCH="')
+  echo $ARCH
+  echo "Installing custom MPD depending on system architecture"
+
+  # (workaround) setting up apt sources early before executing "scripts/configure.sh"
+  echo 'deb http://ftp.nl.debian.org/debian/ stretch main contrib non-free' > /etc/apt/sources.list
+  echo 'deb-src http://ftp.nl.debian.org/debian/ stretch main contrib non-free' >> /etc/apt/sources.list
+
+  # (workaround) enable armhf on arm64 platform
+  echo "# enabling armhf arch on arm64"
+  dpkg --add-architecture armhf
+  apt-get clean
+  apt-get update
+  apt-get -y install libc6:armhf libgcc1:armhf libstdc++6:armhf
+
+  # TODO: install/compile mpd & upmpdcli
+  echo "Building MPD from source..."
+  echo "Building Upmpdcli from source..."
+  source /source_build_mpd_arm64.sh
+  rm -f /source_build_mpd_arm64.sh
+
+  echo "Adding volumio-remote-updater for armv8"
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater_1.3-armv7.deb
+  dpkg -i volumio-remote-updater_1.3-armv7.deb
+  rm volumio-remote-updater_1.3-armv7.deb
+
+
+  #Remove autostart of upmpdcli
+  update-rc.d upmpdcli remove
+
+  echo "Installing Shairport-Sync"
+  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-3.0.2-arm.tar.gz
+  tar xf shairport-sync-3.0.2-arm.tar.gz
+  rm /shairport-sync-3.0.2-arm.tar.gz
+
+  echo "Installing Shairport-Sync Metadata Reader"
+  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-metadata-reader-arm.tar.gz
+  tar xf shairport-sync-metadata-reader-arm.tar.gz
+  rm /shairport-sync-metadata-reader-arm.tar.gz
+
+  echo "Volumio Init Updater"
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-init-updater-v2 -O /usr/local/sbin/volumio-init-updater
+  chmod a+x /usr/local/sbin/volumio-init-updater
+
+  echo "Installing Snapcast for multiroom"
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/snapserver -P /usr/sbin/
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/snapclient -P  /usr/sbin/
+  chmod a+x /usr/sbin/snapserver
+  chmod a+x /usr/sbin/snapclient
+
+  echo "Zsync already installed in multistrap"
+  echo "Adding special version for edimax dongle"
+  wget http://repo.volumio.org/Volumio2/Binaries/arm/hostapd-edimax -P /usr/sbin/
+  chmod a+x /usr/sbin/hostapd-edimax
+
+  echo "interface=wlan0
+ssid=Volumio
+channel=4
+driver=rtl871xdrv
+hw_mode=g
+auth_algs=1
+wpa=2
+wpa_key_mgmt=WPA-PSK
+rsn_pairwise=CCMP
+wpa_passphrase=volumio2" >> /etc/hostapd/hostapd-edimax.conf
+  chmod -R 777 /etc/hostapd-edimax.conf
+
+  echo "Cleanup"
+  apt-get clean
+  rm -rf tmp/*
+
+fi
+## END of arm64
+
+
+if [ $(uname -m) = armv7l ]; then
   echo "Arm Environment detected"
   echo ' Adding Raspbian Repo Key'
   wget https://archive.raspbian.org/raspbian.public.key -O - | sudo apt-key add -
@@ -219,62 +340,36 @@ if [ $(uname -m) = armv7l ] || [ $(uname -m) = aarch64 ]; then
      dpkg -i volumio-remote-updater_1.3-armhf.deb
      rm volumio-remote-updater_1.3-armhf.deb
 
-
-  elif [ $ARCH = armv7 ]||[ $ARCH = armv8 ]; then
+  elif [ $ARCH = armv7 ]; then
      echo "Installing MPD for armv7"
      # First we manually install a newer alsa-lib to achieve Direct DSD support
 
-    if [ $ARCH = armv8 ];then
-      # (workaround) setting up apt sources early before executing "scripts/configure.sh"
-      echo 'deb http://ftp.nl.debian.org/debian/ stretch main contrib non-free' > /etc/apt/sources.list
-      echo 'deb-src http://ftp.nl.debian.org/debian/ stretch main contrib non-free' >> /etc/apt/sources.list
+    echo "Installing alsa-lib 1.1.3"
+    wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv7/libasound2_1.1.3-5_armhf.deb
+    wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv7/libasound2-data_1.1.3-5_all.deb
+    wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv7/libasound2-dev_1.1.3-5_armhf.deb
+    dpkg --force-all -i libasound2-data_1.1.3-5_all.deb
+    dpkg --force-all -i libasound2_1.1.3-5_armhf.deb
+    dpkg --force-all -i libasound2-dev_1.1.3-5_armhf.deb
+    rm libasound2-data_1.1.3-5_all.deb
+    rm libasound2_1.1.3-5_armhf.deb
+    rm libasound2-dev_1.1.3-5_armhf.deb
 
-      # (workaround) enable armhf on arm64 platform
-      echo "# enabling armhf arch on arm64"
-      dpkg --add-architecture armhf
-      apt-get clean
-      apt-get update
-      apt-get -y install libc6:armhf libgcc1:armhf libstdc++6:armhf
+    echo "Installing MPD 20.18"
+    wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.18-1_armv7.deb
+    dpkg -i mpd_0.20.18-1_armv7.deb
+    rm mpd_0.20.18-1_armv7.deb
 
-      # alsa libs already configured in multistrap stage:
-      # apt-get -y install libasound2 libasound2-dev libasound2-data libasound2-plugin-equal
-
-      # TODO: install/compile mpd & upmpdcli
-      echo "Building MPD from source..."
-      echo "Building Upmpdcli from source..."
-      source /source_build_mpd_arm64.sh
-      rm -f /source_build_mpd_arm64.sh
-
-    else
-      echo "Installing alsa-lib 1.1.3"
-      wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv7/libasound2_1.1.3-5_armhf.deb
-      wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv7/libasound2-data_1.1.3-5_all.deb
-      wget http://repo.volumio.org/Volumio2/Binaries/libasound2/armv7/libasound2-dev_1.1.3-5_armhf.deb
-      dpkg --force-all -i libasound2-data_1.1.3-5_all.deb
-      dpkg --force-all -i libasound2_1.1.3-5_armhf.deb
-      dpkg --force-all -i libasound2-dev_1.1.3-5_armhf.deb
-      rm libasound2-data_1.1.3-5_all.deb
-      rm libasound2_1.1.3-5_armhf.deb
-      rm libasound2-dev_1.1.3-5_armhf.deb
-
-      echo "Installing MPD 20.18"
-      wget http://repo.volumio.org/Volumio2/Binaries/mpd-DSD/mpd_0.20.18-1_armv7.deb
-      dpkg -i mpd_0.20.18-1_armv7.deb
-      rm mpd_0.20.18-1_armv7.deb
-
-      echo "Installing Upmpdcli for armv7"
-      wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/libupnpp3_0.15.1-1_armhf.deb
-      wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/libupnp6_1.6.20.jfd5-1_armhf.deb
-      wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/upmpdcli_1.2.12-1_armhf.deb
-      dpkg -i libupnpp3_0.15.1-1_armhf.deb
-      dpkg -i libupnp6_1.6.20.jfd5-1_armhf.deb
-      dpkg -i upmpdcli_1.2.12-1_armhf.deb
-      rm libupnpp3_0.15.1-1_armhf.deb
-      rm libupnp6_1.6.20.jfd5-1_armhf.deb
-      rm upmpdcli_1.2.12-1_armhf.deb
-
-    fi
-
+    echo "Installing Upmpdcli for armv7"
+    wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/libupnpp3_0.15.1-1_armhf.deb
+    wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/libupnp6_1.6.20.jfd5-1_armhf.deb
+    wget http://repo.volumio.org/Volumio2/Binaries/upmpdcli/armv7/upmpdcli_1.2.12-1_armhf.deb
+    dpkg -i libupnpp3_0.15.1-1_armhf.deb
+    dpkg -i libupnp6_1.6.20.jfd5-1_armhf.deb
+    dpkg -i upmpdcli_1.2.12-1_armhf.deb
+    rm libupnpp3_0.15.1-1_armhf.deb
+    rm libupnp6_1.6.20.jfd5-1_armhf.deb
+    rm upmpdcli_1.2.12-1_armhf.deb
 
     echo "Adding volumio-remote-updater for armv7"
     wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater_1.3-armv7.deb
@@ -329,6 +424,7 @@ wpa_passphrase=volumio2" >> /etc/hostapd/hostapd-edimax.conf
   echo "Cleanup"
   apt-get clean
   rm -rf tmp/*
+
 elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]  ; then
   echo 'x86 Environment Detected'
 
@@ -431,8 +527,8 @@ elif [ $(uname -m) = i686 ] || [ $(uname -m) = x86 ] || [ $(uname -m) = x86_64 ]
   dpkg -i volumio-remote-updater_1.3-i386.deb
   rm /volumio-remote-updater_1.3-i386.deb
 
-
 fi
+
 
 echo "Setting proper permissions for ping"
 chmod u+s /bin/ping
