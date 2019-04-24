@@ -1,6 +1,6 @@
 #!/bin/bash
 set -x
-set -e
+# set -e
 
 # Upmpdcli
 wget -c 'http://congxin.org:8360/debuild/packages/libupnp-dev_1.6.20.jfd5-1~ppa1~stretch_all.deb'
@@ -47,6 +47,10 @@ rm -fv 'libupnp-dev_1.6.20.jfd5-1~ppa1~stretch_all.deb' \
 
 
 # libmpdclient && mpc && mpd
+apt-get install -y \
+    libavcodec57 libavformat57 libavutil55 libcdio-cdda1 libcdio-paranoia1 \
+    libcdio13 libfaad2 libgme0 libid3tag0 libjs-sphinxdoc libmad0 libmms0 libmp3lame0 \
+    libmpcdec6 libmpg123-0 libnfs8 libopus0 libsidplayfp4 libsoxr0 libwildmidi2 libyajl2
 
 wget -c  'http://congxin.org:8360/debuild/packages/libmpdclient-dev_2.16-1_arm64.deb'
 wget -c  'http://congxin.org:8360/debuild/packages/libmpdclient2_2.16-1_arm64.deb'
@@ -56,8 +60,8 @@ wget -c  'http://congxin.org:8360/debuild/packages/mpd_0.21.5-sacd1_arm64.deb'
 dpkg -i \
   'libmpdclient-dev_2.16-1_arm64.deb' \
   'libmpdclient2_2.16-1_arm64.deb' \
-  'mpc_0.31-1_arm64.deb' \
-  'mpd_0.21.5-sacd1_arm64.deb'
+  'mpc_0.31-1_arm64.deb'
+dpkg -i 'mpd_0.21.5-sacd1_arm64.deb' || true
 
 apt --fix-broken install -y
 
