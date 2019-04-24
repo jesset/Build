@@ -199,8 +199,8 @@ if [ $(uname -m) = aarch64 ]; then
   # TODO: install/compile mpd & upmpdcli
   echo "Building MPD from source..."
   echo "Building Upmpdcli from source..."
-  source /source_build_mpd_arm64.sh
-  rm -f /source_build_mpd_arm64.sh
+  source /install_upmpdcli_mpd_arm64.sh
+  rm -f /install_upmpdcli_mpd_arm64.sh
 
   echo "Adding volumio-remote-updater for armv8"
   wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater_1.3-armv7.deb
