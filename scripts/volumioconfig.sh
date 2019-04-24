@@ -161,7 +161,15 @@ if [ $(uname -m) = aarch64 ]; then
   # wget http://repo.volumio.org/Volumio2/node_modules_arm-${NODE_VERSION}.tar.gz
   # tar xf node_modules_arm-${NODE_VERSION}.tar.gz
   # rm node_modules_arm-${NODE_VERSION}.tar.gz
-  npm install #(workaround)
+
+  # Speedup in China
+  npm config set registry https://registry.npm.taobao.org
+  alias cnpm="npm --registry=https://registry.npm.taobao.org \
+  --cache=$HOME/.npm/.cache/cnpm \
+  --disturl=https://npm.taobao.org/dist \
+  --userconfig=$HOME/.cnpmrc"
+
+  cnpm install #(workaround)
 
   echo "Setting proper ownership"
   chown -R volumio:volumio /volumio
