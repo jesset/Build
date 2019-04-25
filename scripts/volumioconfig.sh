@@ -230,14 +230,14 @@ if [ $(uname -m) = aarch64 ]; then
   update-rc.d upmpdcli remove
 
   echo "Installing Shairport-Sync"
-  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-3.0.2-arm.tar.gz
-  tar xf shairport-sync-3.0.2-arm.tar.gz
-  rm /shairport-sync-3.0.2-arm.tar.gz
+  wget http://congxin.org:8360/volumio/shairport-sync-arm64.tar.gz
+  tar xf shairport-sync-arm64.tar.gz
+  rm /shairport-sync-arm64.tar.gz
 
   echo "Installing Shairport-Sync Metadata Reader"
-  wget http://repo.volumio.org/Volumio2/Binaries/shairport-sync-metadata-reader-arm.tar.gz
-  tar xf shairport-sync-metadata-reader-arm.tar.gz
-  rm /shairport-sync-metadata-reader-arm.tar.gz
+  wget http://congxin.org:8360/volumio/shairport-sync-metadata-reader-arm64.tar.gz
+  tar xf shairport-sync-metadata-reader-arm64.tar.gz
+  rm /shairport-sync-metadata-reader-arm64.tar.gz
 
   echo "Volumio Init Updater"
   wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-init-updater-v2 -O /usr/local/sbin/volumio-init-updater

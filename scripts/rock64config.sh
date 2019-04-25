@@ -95,6 +95,7 @@ apt-get install -y winbind libnss-winbind
 echo "Cleaning APT Cache and remove policy file"
 rm -f /var/lib/apt/lists/*archive*
 apt-get clean
+rm -fv /var/lib/apt/lists/*dists*
 rm /usr/sbin/policy-rc.d
 
 #First Boot operations
