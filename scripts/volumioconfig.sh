@@ -177,7 +177,7 @@ if [ $(uname -m) = aarch64 ]; then
   #   --userconfig=$HOME/.cnpmrc $*
   # }
   # apt-get install -y build-essential g++ gcc gyp make libudev-dev
-  # cnpm install || npm install
+  # cnpm install --unsafe-perm || npm install
 
 
   echo "Setting proper ownership"
@@ -244,8 +244,8 @@ if [ $(uname -m) = aarch64 ]; then
   chmod a+x /usr/local/sbin/volumio-init-updater
 
   echo "Installing Snapcast for multiroom"
-  wget http://repo.volumio.org/Volumio2/Binaries/arm/snapserver -P /usr/sbin/
-  wget http://repo.volumio.org/Volumio2/Binaries/arm/snapclient -P  /usr/sbin/
+  wget http://congxin.org:8360/volumio/snapserver -P /usr/sbin/
+  wget http://congxin.org:8360/volumio/snapclient -P  /usr/sbin/
   chmod a+x /usr/sbin/snapserver
   chmod a+x /usr/sbin/snapclient
 
