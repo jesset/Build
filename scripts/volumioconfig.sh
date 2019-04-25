@@ -141,8 +141,8 @@ if [ $(uname -m) = aarch64 ]; then
   echo ' Adding Raspbian Repo Key'
   wget https://archive.raspbian.org/raspbian.public.key -O - | sudo apt-key add -
 
-  echo "Installing ARM Node Environment"
-  # NODE_VERSION=8.16.0
+  echo "Installing ARM64 Node Environment"
+  NODE_VERSION=8.11.4   # 8.11.1 compile grpc fail!
   # wget https://nodejs.org/dist/latest-v8.x/node-v${NODE_VERSION}-linux-arm64.tar.xz
   wget -c https://npm.taobao.org/mirrors/node/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-arm64.tar.xz
   tar xf node-v${NODE_VERSION}-linux-arm64.tar.xz
@@ -158,25 +158,25 @@ if [ $(uname -m) = aarch64 ]; then
 
   echo "Installing Volumio Modules"
   cd /volumio
-  # TODO
+
+  # TODO (use prebuild pack)
   # wget http://repo.volumio.org/Volumio2/node_modules_arm-${NODE_VERSION}.tar.gz
   # tar xf node_modules_arm-${NODE_VERSION}.tar.gz
   # rm node_modules_arm-${NODE_VERSION}.tar.gz
 
-  # Speedup in China
+  # TODO (compile) Download speed concern in China...
   npm config set registry https://registry.npm.taobao.org
   # alias cnpm="npm --registry=https://registry.npm.taobao.org \
   # --cache=$HOME/.npm/.cache/cnpm \
   # --disturl=https://npm.taobao.org/dist \
   # --userconfig=$HOME/.cnpmrc"
-
   cnpm(){
     npm --registry=https://registry.npm.taobao.org \
     --cache=$HOME/.npm/.cache/cnpm \
     --disturl=https://npm.taobao.org/dist \
     --userconfig=$HOME/.cnpmrc $*
   }
-
+  apt-get install -y build-essential g++ gcc gyp make
   cnpm install || npm install
 
 
