@@ -159,25 +159,25 @@ if [ $(uname -m) = aarch64 ]; then
   echo "Installing Volumio Modules"
   cd /volumio
 
-  # TODO (use prebuild pack)
-  # wget http://repo.volumio.org/Volumio2/node_modules_arm-${NODE_VERSION}.tar.gz
-  # tar xf node_modules_arm-${NODE_VERSION}.tar.gz
-  # rm node_modules_arm-${NODE_VERSION}.tar.gz
+  # (use prebuild pack)
+  wget -c http://congxin.org:8360/volumio/node_modules_arm64-${NODE_VERSION}.tar.gz
+  tar xf node_modules_arm64-${NODE_VERSION}.tar.gz
+  rm node_modules_arm64-${NODE_VERSION}.tar.gz
 
-  # TODO (compile) Download speed concern in China...
-  npm config set registry https://registry.npm.taobao.org
-  # alias cnpm="npm --registry=https://registry.npm.taobao.org \
-  # --cache=$HOME/.npm/.cache/cnpm \
-  # --disturl=https://npm.taobao.org/dist \
-  # --userconfig=$HOME/.cnpmrc"
-  cnpm(){
-    npm --registry=https://registry.npm.taobao.org \
-    --cache=$HOME/.npm/.cache/cnpm \
-    --disturl=https://npm.taobao.org/dist \
-    --userconfig=$HOME/.cnpmrc $*
-  }
-  apt-get install -y build-essential g++ gcc gyp make
-  cnpm install || npm install
+  # else compile it, using taobao rpm considering download speed in China...
+  # npm config set registry https://registry.npm.taobao.org
+  ## alias cnpm="npm --registry=https://registry.npm.taobao.org \
+  ## --cache=$HOME/.npm/.cache/cnpm \
+  ## --disturl=https://npm.taobao.org/dist \
+  ## --userconfig=$HOME/.cnpmrc"
+  # cnpm(){
+  #   npm --registry=https://registry.npm.taobao.org \
+  #   --cache=$HOME/.npm/.cache/cnpm \
+  #   --disturl=https://npm.taobao.org/dist \
+  #   --userconfig=$HOME/.cnpmrc $*
+  # }
+  # apt-get install -y build-essential g++ gcc gyp make libudev-dev
+  # cnpm install || npm install
 
 
   echo "Setting proper ownership"
@@ -223,6 +223,7 @@ if [ $(uname -m) = aarch64 ]; then
   wget http://repo.volumio.org/Volumio2/Binaries/arm/volumio-remote-updater_1.3-armv7.deb
   dpkg -i volumio-remote-updater_1.3-armv7.deb
   rm volumio-remote-updater_1.3-armv7.deb
+  apt-get install libcurl3:armhf  -y   # as dependancy
 
 
   #Remove autostart of upmpdcli
