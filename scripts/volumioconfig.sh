@@ -213,9 +213,8 @@ if [ $(uname -m) = aarch64 ]; then
   apt-get update
   apt-get -y install libc6:armhf libgcc1:armhf libstdc++6:armhf
 
-  # TODO: install/compile mpd & upmpdcli
-  echo "Building MPD from source..."
-  echo "Building Upmpdcli from source..."
+  # install/compile mpd & upmpdcli
+  echo "Installing MPD and Upmpdcli ..."
   source /install_upmpdcli_mpd_arm64.sh
   rm -f /install_upmpdcli_mpd_arm64.sh
 
