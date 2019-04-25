@@ -165,12 +165,20 @@ if [ $(uname -m) = aarch64 ]; then
 
   # Speedup in China
   npm config set registry https://registry.npm.taobao.org
-  alias cnpm="npm --registry=https://registry.npm.taobao.org \
-  --cache=$HOME/.npm/.cache/cnpm \
-  --disturl=https://npm.taobao.org/dist \
-  --userconfig=$HOME/.cnpmrc"
+  # alias cnpm="npm --registry=https://registry.npm.taobao.org \
+  # --cache=$HOME/.npm/.cache/cnpm \
+  # --disturl=https://npm.taobao.org/dist \
+  # --userconfig=$HOME/.cnpmrc"
 
-  cnpm install #(workaround)
+  cnpm(){
+    npm --registry=https://registry.npm.taobao.org \
+    --cache=$HOME/.npm/.cache/cnpm \
+    --disturl=https://npm.taobao.org/dist \
+    --userconfig=$HOME/.cnpmrc $*
+  }
+
+  cnpm install || npm install
+
 
   echo "Setting proper ownership"
   chown -R volumio:volumio /volumio
