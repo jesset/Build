@@ -142,8 +142,9 @@ if [ $(uname -m) = aarch64 ]; then
   wget https://archive.raspbian.org/raspbian.public.key -O - | sudo apt-key add -
 
   echo "Installing ARM Node Environment"
-  NODE_VERSION=8.16.0
-  wget https://nodejs.org/dist/latest-v8.x/node-v${NODE_VERSION}-linux-arm64.tar.xz
+  # NODE_VERSION=8.16.0
+  # wget https://nodejs.org/dist/latest-v8.x/node-v${NODE_VERSION}-linux-arm64.tar.xz
+  wget -c https://npm.taobao.org/mirrors/node/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-arm64.tar.xz
   tar xf node-v${NODE_VERSION}-linux-arm64.tar.xz
   rm /node-v${NODE_VERSION}-linux-arm64.tar.xz
   cd /node-v${NODE_VERSION}-linux-arm64
