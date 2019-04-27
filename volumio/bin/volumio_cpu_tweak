@@ -1,17 +1,25 @@
 #!/bin/sh
 
-CORES=`cat /proc/cpuinfo | awk '/^processor/{print $3}' | tail -1`
-MPD_PID=`/bin/pidof mpd`
+# CORES=`cat /proc/cpuinfo | awk '/^processor/{print $3}' | tail -1`
+# MPD_PID=`/bin/pidof mpd`
 
-echo "Real-time Kernel Environment"
-echo "Setting RT Priority for mpd"
-/usr/bin/chrt -f -p -a 35 $MPD_PID
+# echo "Real-time Kernel Environment"
+# echo "Setting RT Priority for mpd"
+# /usr/bin/chrt -f -p -a 35 $MPD_PID
 
-if [ "$CORES" -gt 2 ]; then
-   echo "Setting MPD Affinity"
-   /usr/bin/taskset -p 3 $MPD_PID
-     else
-   echo "Not enough cores to set MPD affinity"
-fi
+# if [ "$CORES" -gt 2 ]; then
+#    echo "Setting MPD Affinity"
+#    /usr/bin/taskset -p 3 $MPD_PID
+#      else
+#    echo "Not enough cores to set MPD affinity"
+# fi
+
+# MPD RT setting: goes to mpd.service , and automatically switched by mpd self.
+
+# Network and IRQ/softIRQ cpu affinity : CPU 0-1
+pgrep irq/    | xargs --verbose  -n 1 -r  taskset -pc 0,1
+pgrep kworker | xargs --verbose  -n 1 -r  taskset -pc 0,1
+echo 3| tee /sys/devices/platform/*/net/*/queues/rx-*/rps_cpus
+
 
 exit 0

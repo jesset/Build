@@ -5,10 +5,19 @@ After=network.target sound.target
 
 [Service]
 Type=notify
-ExecStart=/usr/bin/mpd --no-daemon
+EnvironmentFile=-/etc/default/mpd
+# ExecStartPre=-/bin/bash -c '/usr/bin/mpd -V | grep -q sacdiso && { grep -q sacdiso /etc/mpd.conf || cat /etc/mpd.conf.d/sacdiso.conf >> /etc/mpd.conf ; }'
+#ExecStart=/usr/bin/mpd --verbose --stderr --no-daemon $MPDCONF
+ExecStart=/usr/bin/mpd --no-daemon $MPDCONF
 # allow MPD to use real-time priority 50
 LimitRTPRIO=50
 LimitRTTIME=infinity
+LimitNOFILE=32768
+Nice=-20
+CPUAffinity=2-3
+LimitMEMLOCK=infinity
+IOSchedulingClass=realtime
+IOSchedulingPriority=0
 
 # disallow writing to /usr, /bin, /sbin, ...
 ProtectSystem=yes

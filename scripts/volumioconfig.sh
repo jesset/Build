@@ -631,6 +631,9 @@ echo "Linking Volumio Command Line Client"
 ln -s /volumio/app/plugins/system_controller/volumio_command_line_client/volumio.sh /usr/local/bin/volumio
 chmod a+x /usr/local/bin/volumio
 
+echo "Enable Volumio cpu tweaks"
+ln -s /lib/systemd/system/volumio_cpu_tweak.service /etc/systemd/system/multi-user.target.wants/volumio_cpu_tweak.service
+
 #####################
 #Audio Optimizations#-----------------------------------------
 #####################
@@ -667,6 +670,21 @@ echo "#disable ipv6" | tee -a /etc/sysctl.conf
 echo "net.ipv6.conf.all.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
 echo "net.ipv6.conf.default.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
 echo "net.ipv6.conf.lo.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
+cat <<EOF>/etc/sysctl.d/100-custom.conf
+# by jesset
+vm.min_free_kbytes = 65536
+net.core.netdev_max_backlog = 2000
+net.core.rmem_max = 1048576
+net.core.wmem_max = 1048576
+net.ipv4.tcp_mem = 23070    30766    46140
+net.ipv4.tcp_rmem = 8192    174760    12582912
+net.ipv4.tcp_wmem = 8192    174760    12582912
+net.ipv4.tcp_tw_reuse = 1
+# vm.swappiness = 0
+kernel.sched_nr_migrate = 1
+net.ipv4.tcp_timestamps = 0
+EOF
+
 
 echo "Wireless"
 ln -s /lib/systemd/system/wireless.service /etc/systemd/system/multi-user.target.wants/wireless.service
