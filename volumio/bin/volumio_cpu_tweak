@@ -21,5 +21,19 @@ pgrep irq/    | xargs --verbose  -n 1 -r  taskset -pc 0,1
 pgrep kworker | xargs --verbose  -n 1 -r  taskset -pc 0,1
 echo 3| tee /sys/devices/platform/*/net/*/queues/rx-*/rps_cpus
 
+# Reduce OS jitter
+echo "# adjusting rcu_sched/rcu_preempt ..."
+for i in `pgrep rcu[^c]` ; do taskset -pc 0,1 $i ; done
+echo 3 | tee /sys/bus/workqueue/devices/writeback/cpumask
+echo 1 | tee /proc/sys/kernel/sched_nr_migrate
+
+# To keep all CPUs with the same rt_runtime, disable the NO_RT_RUNTIME_SHARE logic
+# https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux_for_real_time/7/html/tuning_guide/real_time_throttling
+# echo NO_RT_RUNTIME_SHARE > /sys/kernel/debug/sched_features
+
+echo 0 > /proc/sys/kernel/watchdog
+echo 60 > /proc/sys/kernel/watchdog_thresh
+sysctl -w vm.stat_interval=120
+sysctl -w kernel.softlockup_all_cpu_backtrace=1
 
 exit 0
