@@ -208,6 +208,9 @@ EOF
   ###Dirty fix for mpd.conf TODO use volumio repo
   cp volumio/etc/mpd.conf "build/$BUILD/root/etc/mpd.conf"
 
+  ##mpd-sacd support
+  cp -r volumio/etc/mpd.conf.d "build/$BUILD/root/etc/"
+
   CUR_DATE=$(date)
   #Write some Version informations
   echo "Writing system information"
