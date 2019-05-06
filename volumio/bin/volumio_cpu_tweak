@@ -21,6 +21,27 @@ pgrep irq/    | xargs --verbose  -n 1 -r  taskset -pc 0,1
 pgrep kworker | xargs --verbose  -n 1 -r  taskset -pc 0,1
 echo 3| tee /sys/devices/platform/*/net/*/queues/rx-*/rps_cpus
 
+echo "INFO: all usb device irq goes to CPU1"
+cat /proc/interrupts | awk '($NF ~ "usb"){print $1}'|tr -d : | while read usb_irq;do
+  echo -n "IRQ: ${usb_irq}, current cpus:"
+  cat "/proc/irq/${usb_irq}/smp_affinity_list"
+  echo 1 > "/proc/irq/${usb_irq}/smp_affinity_list"
+  echo -n "IRQ: ${usb_irq}, new cpus:"
+  cat "/proc/irq/${usb_irq}/smp_affinity_list"
+  echo
+done
+
+echo "INFO: all ethernet device irq goes to CPU0"
+cat /proc/interrupts | awk '($NF ~ "eth"){print $1}'|tr -d : | while read _irq;do
+  echo -n "IRQ: ${_irq}, current cpus:"
+  cat "/proc/irq/${_irq}/smp_affinity_list"
+  echo 0 > "/proc/irq/${_irq}/smp_affinity_list"
+  echo -n "IRQ: ${_irq}, new cpus:"
+  cat "/proc/irq/${_irq}/smp_affinity_list"
+  echo
+done
+
+
 # Reduce OS jitter
 echo "# adjusting rcu_sched/rcu_preempt ..."
 for i in `pgrep rcu[^c]` ; do taskset -pc 0,1 $i ; done
