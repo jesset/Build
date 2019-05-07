@@ -3,10 +3,12 @@
 # CORES=`cat /proc/cpuinfo | awk '/^processor/{print $3}' | tail -1`
 # MPD_PID=`/bin/pidof mpd`
 
+# MPD RT setting: goes to mpd.service , and automatically switched by mpd self.
+#
 # echo "Real-time Kernel Environment"
 # echo "Setting RT Priority for mpd"
 # /usr/bin/chrt -f -p -a 35 $MPD_PID
-
+#
 # if [ "$CORES" -gt 2 ]; then
 #    echo "Setting MPD Affinity"
 #    /usr/bin/taskset -p 3 $MPD_PID
@@ -14,22 +16,15 @@
 #    echo "Not enough cores to set MPD affinity"
 # fi
 
-# MPD RT setting: goes to mpd.service , and automatically switched by mpd self.
 
-# Network and IRQ/softIRQ cpu affinity : CPU 0-1
-pgrep irq/    | xargs --verbose  -n 1 -r  taskset -pc 0,1
-pgrep kworker | xargs --verbose  -n 1 -r  taskset -pc 0,1
-echo 3| tee /sys/devices/platform/*/net/*/queues/rx-*/rps_cpus
+# Network and IRQ/softIRQ cpu affinity : CPU 0
+pgrep irq/    | xargs --verbose  -n 1 -r  taskset -pc 0
+#pgrep kworker | xargs --verbose  -n 1 -r  taskset -pc 0  # not work, immutable
 
-echo "INFO: all usb device irq goes to CPU1"
-cat /proc/interrupts | awk '($NF ~ "usb"){print $1}'|tr -d : | while read usb_irq;do
-  echo -n "IRQ: ${usb_irq}, current cpus:"
-  cat "/proc/irq/${usb_irq}/smp_affinity_list"
-  echo 1 > "/proc/irq/${usb_irq}/smp_affinity_list"
-  echo -n "IRQ: ${usb_irq}, new cpus:"
-  cat "/proc/irq/${usb_irq}/smp_affinity_list"
-  echo
-done
+# all nodejs goes to CPU 2-3
+# TODO: should set in systemd.service
+pgrep node | xargs --verbose -n 1 -r taskset -pc 2,3
+pgrep 'upmpdcli|shairport-sync' | xargs --verbose -n 1 -r taskset -pc 2,3
 
 echo "INFO: all ethernet device irq goes to CPU0"
 cat /proc/interrupts | awk '($NF ~ "eth"){print $1}'|tr -d : | while read _irq;do
@@ -41,20 +36,45 @@ cat /proc/interrupts | awk '($NF ~ "eth"){print $1}'|tr -d : | while read _irq;d
   echo
 done
 
+echo "INFO: all USB device(except shared usb_otg) irq goes to CPU1"
+cat /proc/interrupts | awk '($NF ~ "ehci|ohci|xhci"){print $1}'|tr -d : | while read usb_irq;do
+  echo -n "IRQ: ${usb_irq}, current cpus:"
+  cat "/proc/irq/${usb_irq}/smp_affinity_list"
+  echo 1 > "/proc/irq/${usb_irq}/smp_affinity_list"
+  echo -n "IRQ: ${usb_irq}, new cpus:"
+  cat "/proc/irq/${usb_irq}/smp_affinity_list"
+  echo
+done
+pgrep 'ehci|ohci|xhci' | xargs ps -o class,pid,lwp,psr,rtprio,pri,nice,sched,pcpu,comm,args -p
+pgrep 'ehci|ohci|xhci' | xargs --verbose  -n 1 -r  taskset -pc 1
+
 
 # Reduce OS jitter
 echo "# adjusting rcu_sched/rcu_preempt ..."
 for i in `pgrep rcu[^c]` ; do taskset -pc 0,1 $i ; done
-echo 3 | tee /sys/bus/workqueue/devices/writeback/cpumask
-echo 1 | tee /proc/sys/kernel/sched_nr_migrate
+echo 1 > /sys/bus/workqueue/devices/writeback/cpumask  # CPU0
+echo f| tee /sys/devices/platform/*/net/*/queues/rx-*/rps_cpus # CPU0-3
+echo 1 > /proc/sys/kernel/sched_nr_migrate
+echo 0 > /proc/sys/kernel/watchdog
+echo 60 > /proc/sys/kernel/watchdog_thresh
+sysctl -w vm.stat_interval=120
+sysctl -w kernel.softlockup_all_cpu_backtrace=1
 
 # To keep all CPUs with the same rt_runtime, disable the NO_RT_RUNTIME_SHARE logic
 # https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux_for_real_time/7/html/tuning_guide/real_time_throttling
 # echo NO_RT_RUNTIME_SHARE > /sys/kernel/debug/sched_features
 
-echo 0 > /proc/sys/kernel/watchdog
-echo 60 > /proc/sys/kernel/watchdog_thresh
-sysctl -w vm.stat_interval=120
-sysctl -w kernel.softlockup_all_cpu_backtrace=1
+for srv in cgmanager.service cgproxy.service cron.service rsync.service apt-daily-upgrade.timer apt-daily.timer haveged.service
+do
+  systemctl is-enabled ${srv}  && systemctl disable ${srv}
+  systemctl is-active ${srv}  && systemctl stop ${srv}
+done
+
+#for srv in lircd-setup.service lircd-uinput.service lircd.service lircmd.service lircd.socket
+#do
+#    systemctl is-active ${srv}  && systemctl stop ${srv}
+#done
+
+
 
 exit 0
