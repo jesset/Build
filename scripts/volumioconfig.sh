@@ -120,7 +120,7 @@ SUDOERS_FILE="/etc/sudoers.d/volumio-user"
 echo 'Adding Safe Sudoers NoPassw permissions'
 cat > ${SUDOERS_FILE} << EOF
 # Add permissions for volumio user
-volumio ALL=(ALL) ALL
+volumio ALL=(ALL) NOPASSWD: ALL
 volumio ALL=(ALL) NOPASSWD: /sbin/poweroff,/sbin/shutdown,/sbin/reboot,/sbin/halt,/bin/systemctl,/usr/bin/apt-get,/usr/sbin/update-rc.d,/usr/bin/gpio,/bin/mount,/bin/umount,/sbin/iwconfig,/sbin/iwlist,/sbin/ifconfig,/usr/bin/killall,/bin/ip,/usr/sbin/service,/etc/init.d/netplug,/bin/journalctl,/bin/chmod,/sbin/ethtool,/usr/sbin/alsactl,/bin/tar,/usr/bin/dtoverlay,/sbin/dhclient,/usr/sbin/i2cdetect,/sbin/dhcpcd,/usr/bin/alsactl,/bin/mv,/sbin/iw,/bin/hostname,/sbin/modprobe,/sbin/iwgetid,/bin/ln,/usr/bin/unlink,/bin/dd,/usr/bin/dcfldd,/opt/vc/bin/vcgencmd,/opt/vc/bin/tvservice,/usr/bin/renice,/bin/rm
 volumio ALL=(ALL) NOPASSWD: /bin/sh /volumio/app/plugins/system_controller/volumio_command_line_client/commands/kernelsource.sh, /bin/sh /volumio/app/plugins/system_controller/volumio_command_line_client/commands/pull.sh
 EOF
@@ -247,6 +247,57 @@ if [ $(uname -m) = aarch64 ]; then
   wget http://congxin.org:8360/volumio/snapclient -P  /usr/sbin/
   chmod a+x /usr/sbin/snapserver
   chmod a+x /usr/sbin/snapclient
+
+
+
+  # RoonBridge 1.
+  curl -O http://download.roonlabs.com/builds/roonbridge-installer-linuxarmv8.sh
+  apt-get -y install bzip2
+  bash roonbridge-installer-linuxarmv8.sh <<< "Y"
+  rm -fv roonbridge-installer-linuxarmv8.sh
+  
+  # RoonBridge 2.
+  mkdir /etc/systemd/system/roonbridge.service.d/
+  touch /etc/systemd/system/roonbridge.service.d/override.conf
+  
+  cat <<EOF >/etc/systemd/system/roonbridge.service.d/override.conf
+[Unit]
+ConditionPathExistsGlob=/boot/roon-only{,.txt}
+
+[Service]
+ExecStartPre=-/bin/bash -c 'systemctl stop mpd.socket mpd.service upmpdcli.service volumio volumio-remote-updater smbd winbind nmbd ; killall shairport-sync'
+LimitNOFILE=32768
+Nice=-20
+CPUAffinity=2-3
+
+EOF
+
+  ln -sf /etc/systemd/system/roonbridge.service  /etc/systemd/system/multi-user.target.wants/roonbridge.service
+
+
+  # HQplayer NAA
+  export naapkg=networkaudiod_3.5.6-41_arm64.deb
+  curl -O https://www.signalyst.eu/bins/naa/linux/stretch/${naapkg}
+  dpkg -i ${naapkg} && rm -fv ${naapkg}
+
+  mkdir /etc/systemd/system/networkaudiod.service.d/
+  touch /etc/systemd/system/networkaudiod.service.d/override.conf
+  cat <<EOF>/etc/systemd/system/networkaudiod.service.d/override.conf
+[Service]
+LimitRTPRIO=50
+LimitMEMLOCK=infinity
+CPUSchedulingPolicy=fifo
+CPUSchedulingPriority=45
+CPUAffinity=2,3
+EOF
+
+  # ln -sf /lib/systemd/system/networkaudiod.service  /etc/systemd/system/multi-user.target.wants/networkaudiod.service
+  rm -fv /etc/systemd/system/multi-user.target.wants/networkaudiod.service
+
+
+
+
+
 
   echo "Zsync already installed in multistrap"
   echo "Adding special version for edimax dongle"

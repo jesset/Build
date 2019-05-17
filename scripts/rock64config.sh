@@ -25,7 +25,7 @@ echo "label kernel-4.4
     kernel /Image
     fdt /rk3328-rock64.dtb
     initrd /uInitrd
-    append  earlycon=uart8250,mmio32,0xff130000 imgpart=UUID=${UUID_IMG} imgfile=/volumio_current.sqsh hwdevice=Rock64 bootpart=UUID=${UUID_BOOT} datapart=UUID=${UUID_DATA} bootconfig=/extlinux/extlinux.conf   net.ifnames=0 biosdevname=0 elevator=noop audit=0 selinux=0 loglevel=10 fsck.repair=yes processor.max_cstate=1 panic=10 idle=poll modprobe.blacklist=bluetooth,ipv6 irqaffinity=0-1 isolcpus=1 nohz_full=1 rcu_nocbs=1 rcu_nocb_poll
+    append  earlycon=uart8250,mmio32,0xff130000 imgpart=UUID=${UUID_IMG} imgfile=/volumio_current.sqsh hwdevice=Rock64 bootpart=UUID=${UUID_BOOT} datapart=UUID=${UUID_DATA} bootconfig=/extlinux/extlinux.conf   net.ifnames=0 biosdevname=0 elevator=noop audit=0 selinux=0 loglevel=10 fsck.repair=yes processor.max_cstate=1 panic=10 idle=poll modprobe.blacklist=bluetooth,rockchipdrm,phy_rockchip_inno_hdmi,dw_hdmi_i2s_audio,snd_soc_audio_graph_card irqaffinity=0-1 isolcpus=1 nohz_full=1 rcu_nocbs=1 rcu_nocb_poll
 "> /boot/extlinux/extlinux.conf
 
 echo "#!/bin/sh
